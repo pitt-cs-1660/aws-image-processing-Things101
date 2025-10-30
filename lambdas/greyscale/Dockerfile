@@ -1,8 +1,14 @@
 FROM public.ecr.aws/lambda/python:3.13
 
-COPY handler.py ${LAMBDA_TASK_ROOT}/
+# install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-RUN pip install --no-cache-dir pillow boto3 -t ${LAMBDA_TASK_ROOT}
+COPY pyproject.toml ./
 
-# Lambda entrypoint
+RUN uv sync --no-dev
+
+COPY handler.py ./
+
+ENV PYTHONPATH="/var/task/.venv/lib/python3.13/site-packages:/var/task"
+
 CMD ["handler.greyscale_handler"]
